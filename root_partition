@@ -1,0 +1,66 @@
+#!/bin/bash
+
+#Register the VM
+subscription-manager register --username=limushaj --password=VloreMozaikart123.
+sleep 5
+
+#create the directory for the new mount
+mkdir=$new_root
+
+
+#identify the root partition old & new
+new_root="/fs/root"
+old_root="/dev/mapper/rhel-root"
+
+fstab="/etc/fstab"
+new_fstab="/fs/root/etc/fstab"
+
+
+#deactivate Selinux only test environment to avoid errors
+grubby --update-kernel ALL --args selinux=0
+echo "********************************************"
+echo "Only on test environment we set Selinux 0"
+echo "********************************************"
+sleep 5
+
+#Mount in new directory
+mount $old_root $new_root
+echo "********************************************"
+echo "Mount in the new directory was succesful"
+echo "********************************************"
+sleep 5
+
+#Dumping partition using xfsdump
+xfsdump -0uf $new_root.dump $old_root
+
+echo "dump of the xfs root partition"
+sleep 5
+
+#Restoring partition to the new directory
+xfsrestore -f $new_root.dump $new_root
+echo "****************************************"
+echo "Restored of the dump file, succesful"
+echo "****************************************"
+
+#Edit fstab /etc/fstab and insert new root path
+echo "/dev/mapper/rhel-root   $new_root                       xfs     defaults        0 0"  | tee -a $fstab
+echo "/dev/mapper/rhel-root   $new_root                       xfs     defaults        0 0"  | tee -a $new_fstab
+
+echo "***********************************"
+echo "New root path append it corretly"
+echo "***********************************"
+sleep 5
+
+#Rebuild grub.cfg file
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+echo "*********************"
+echo "Grub Rebuild"
+echo "*********************"
+sleep 5
+
+echo "*********************"
+echo "Now rebooting"
+echo "*********************"
+sleep 5
+reboot -f
