@@ -55,7 +55,7 @@ sleep 5
 grub2-mkconfig -o /boot/grub2/grub.cfg
 
 echo "*********************"
-echo "Grub Rebuild"
+echo "Grub Rebuilded"
 echo "*********************"
 sleep 5
 
